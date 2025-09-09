@@ -4,12 +4,20 @@ class MyEventEmitter {
   listeners = {};
 
   on(eventName, callback) {
+    if (typeof callback !== 'function') {
+      throw new TypeError('Callback must be a function');
+    }
+
     if (!this.listeners[eventName]) {
       this.listeners[eventName] = [];
     }
     this.listeners[eventName].push(callback);
   }
   once(eventName, callback) {
+    if (typeof callback !== 'function') {
+      throw new TypeError('Callback must be a function');
+    }
+
     if (!this.listeners[eventName]) {
       this.listeners[eventName] = [];
     }
@@ -24,22 +32,42 @@ class MyEventEmitter {
     this.listeners[eventName].push(onceWrapper);
   }
   off(eventName, callback) {
-    this.listeners[eventName] = this.listeners[eventName].filter(
-      (item) => item !== callback && item._original !== callback,
+    if (!this.listeners[eventName]) {
+      return;
+    }
+
+    const index = this.listeners[eventName].findIndex(
+      (item) => item === callback || item._original === callback,
     );
-  }
-  emit(eventName, ...args) {
-    for (const callback of this.listeners[eventName]) {
-      callback(...args);
+
+    if (index !== -1) {
+      this.listeners[eventName].splice(index, 1);
     }
   }
+  emit(eventName, ...args) {
+    const list = (this.listeners[eventName] || []).slice();
+
+    for (const callback of list) {
+      callback(...args);
+    }
+
+    return Boolean(list.length);
+  }
   prependListener(eventName, callback) {
+    if (typeof callback !== 'function') {
+      throw new TypeError('Callback must be a function');
+    }
+
     if (!this.listeners[eventName]) {
       this.listeners[eventName] = [];
     }
     this.listeners[eventName].unshift(callback);
   }
   prependOnceListener(eventName, callback) {
+    if (typeof callback !== 'function') {
+      throw new TypeError('Callback must be a function');
+    }
+
     if (!this.listeners[eventName]) {
       this.listeners[eventName] = [];
     }
