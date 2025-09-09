@@ -19,11 +19,13 @@ class MyEventEmitter {
       callback(...args);
     };
 
+    onceWrapper._original = callback;
+
     this.listeners[eventName].push(onceWrapper);
   }
   off(eventName, callback) {
     this.listeners[eventName] = this.listeners[eventName].filter(
-      (item) => item !== callback,
+      (item) => item !== callback && item._original !== callback,
     );
   }
   emit(eventName, ...args) {
@@ -47,17 +49,19 @@ class MyEventEmitter {
       callback(...args);
     };
 
+    onceWrapper._original = callback;
+
     this.listeners[eventName].unshift(onceWrapper);
   }
   removeAllListeners(eventName) {
-    if (eventName) {
-      this.listeners[eventName] = [];
-    } else {
+    if (arguments.length === 0) {
       this.listeners = {};
+    } else {
+      this.listeners[eventName] = [];
     }
   }
   listenerCount(eventName) {
-    return eventName in this.listeners ? this.listeners[eventName].length : 0;
+    return (this.listeners[eventName] || []).length;
   }
 }
 
